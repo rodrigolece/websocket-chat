@@ -25,7 +25,8 @@
         if (!msg.val()) {
             return false;
         }
-        conn.send(msg.val());
+        var j = JSON.stringify({Action: "broadcast", Message: msg.val()});
+        conn.send(j);
         msg.val("");
         return false
     });
@@ -37,6 +38,10 @@
             appendLog($("<div><b>Connection closed.</b></div>"))
         }
         conn.onmessage = function(evt) {
+            // var message = JSON.parse(evt.data)
+            // // Trabajamos con la suposición de que siempre que llega algo a la
+            // // conexión tiene un mensaje.
+            // appendLog($("<div/>").text(message.Message))
             appendLog($("<div/>").text(evt.data))
         }
     } else {

@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	"net/http"
+	"encoding/json"
+	// "fmt"
 )
 
 type connection struct {
@@ -18,18 +20,26 @@ type connection struct {
 
 func (c *connection) reader() {
 	for {
-		_, message, err := c.ws.ReadMessage()
-		if err != nil {
-			break
+		_, event, _ := c.ws.ReadMessage()
+		var j miEvento
+		// 		c.ws.ReadJSON(j)
+		// 		// ReadJSON utiliza encode/json y utiliza las mismas reglas de conversión
+		json.Unmarshal(event, &j)
+
+		if j.Action == "broadcast" {
+			c.h.broadcast <- []byte(j.Message)
 		}
-		c.h.broadcast <- message
 	}
 	c.ws.Close()
 }
 
 func (c *connection) writer() {
-	// por este range de aquí es importante cerrar el canal en hub
+	/* eventualmente tenemos que mandar los mensajes también codificados?
+	o no es necesario porque los resultados que se mandan de servidor
+	a cliente sólo son cadenas? bueno para el juego no no?*/
 	for message := range c.send {
+		// por este range de aquí es importante cerrar el canal en hub
+		// func (c *Conn) WriteJSON(v interface{}) error
 		err := c.ws.WriteMessage(websocket.TextMessage, message)
 		if err != nil {
 			break
@@ -38,7 +48,10 @@ func (c *connection) writer() {
 	c.ws.Close()
 }
 
-var upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
+var upgrader = &websocket.Upgrader{
+	ReadBufferSize: 1024,
+	WriteBufferSize: 1024,
+}
 
 type wsHandler struct {
 	h *hub
