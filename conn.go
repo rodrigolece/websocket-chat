@@ -31,8 +31,18 @@ func (c *connection) reader() {
 }
 
 func handleWsEvent(c *connection, j wsEvent) {
-	if j.Action == "broadcast" {
-		c.h.broadcast <- []byte(j.Message)
+	id := c.h.conn2id[c]
+	message := []byte(id + ": "+ j.Message)
+	switch j.Action {
+	case "broadcast":
+		c.h.broadcast <- message
+	case "sendto":
+		recipient, ok := j.Data.(string) // La id del destinatario
+		if !ok { return }
+		if recipientConn, ok := c.h.id2conn[recipient]; ok {
+			recipientConn.send <- message
+			c.send <- message
+		}
 	}
 }
 
