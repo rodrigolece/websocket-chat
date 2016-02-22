@@ -21,16 +21,19 @@ type connection struct {
 func (c *connection) reader() {
 	for {
 		_, event, _ := c.ws.ReadMessage()
-		var j miEvento
+		var j wsEvent
 		// 		c.ws.ReadJSON(j)
 		// 		// ReadJSON utiliza encode/json y utiliza las mismas reglas de conversión
 		json.Unmarshal(event, &j)
-
-		if j.Action == "broadcast" {
-			c.h.broadcast <- []byte(j.Message)
-		}
+		go handleWsEvent(c, j)
 	}
 	c.ws.Close()
+}
+
+func handleWsEvent(c *connection, j wsEvent) {
+	if j.Action == "broadcast" {
+		c.h.broadcast <- []byte(j.Message)
+	}
 }
 
 func (c *connection) writer() {

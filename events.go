@@ -1,6 +1,6 @@
 package main
 
-type miEvento struct {
+type wsEvent struct {
     Action string
     Message string
     Data interface{}
