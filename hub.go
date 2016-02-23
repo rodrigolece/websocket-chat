@@ -5,7 +5,7 @@ type hub struct {
 	connections map[*connection]bool
 
 	// Inbound messages from the connections.
-	broadcast chan []byte
+	broadcast chan wsEvent
 
 	// Register requests from the connections.
 	register chan *connection
@@ -20,7 +20,8 @@ type hub struct {
 
 func newHub() *hub {
 	return &hub{
-		broadcast:   make(chan []byte),
+		// número arbitrario, pero debe servir como colchón
+		broadcast:   make(chan wsEvent, 10),
 		register:    make(chan *connection),
 		unregister:  make(chan *connection),
 		connections: make(map[*connection]bool),
@@ -33,16 +34,28 @@ func (h *hub) run() {
 	for {
 		select {
 		case c := <-h.register:
-			h.connections[c] = true
 			id := randString(5)
+			// Anunciamos al nuevo miembro...
+			newMember := wsEvent{
+				Action: "register",
+				Data: id,
+			}
+			// Para canales buffereados, no podemos asegurar el orden de eventos:
+			// el registro termina y LUEGO se lee broadcast.
+			c.h.broadcast <- newMember
+			// select {
+			// case c.h.broadcast <- newMember:
+			// default:
+			// }
+			//... y luego lo registramos
+			h.connections[c] = true
 			h.id2conn[id] = c
 			h.conn2id[c] = id
 		case c := <-h.unregister:
 			if _, ok := h.connections[c]; ok {
 				delete(h.connections, c)
 				close(c.send)
-				// close es importante porque termina loops de range, señala
-				// al receptor que el canal ya no se va a usar
+				// close es importante porque termina la lectura en loops de range
 				id := h.conn2id[c]
 				delete(h.id2conn, id)
 				delete(h.conn2id, c)
@@ -52,8 +65,7 @@ func (h *hub) run() {
 				select {
 				case c.send <- m: // falla si el buffer está lleno
 				default:
-					delete(h.connections, c)
-					close(c.send)
+					h.unregister <- c
 				}
 			}
 		}
