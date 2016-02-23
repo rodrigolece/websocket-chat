@@ -9,6 +9,7 @@
     var msg = $("#msg");
     var log = $("#log");
     var recipient = $("#recipient");
+    var ownID;
 
     function appendLog(msg) {
         var d = log[0]
@@ -26,7 +27,19 @@
         if (!msg.val()) {
             return false;
         }
-        var j = JSON.stringify({Action: "broadcast", Message: msg.val()});
+        var id = recipient.val();
+        if (id == "all") {
+            var j = JSON.stringify({
+                Action: "broadcast",
+                Message: msg.val()
+            });
+        } else {
+            var j = JSON.stringify({
+                Action: "sendto",
+                Message: msg.val(),
+                Data: id
+            });
+        }
         conn.send(j);
         msg.val("");
         return false
@@ -40,14 +53,27 @@
         }
         conn.onmessage = function(evt) {
             var wsEvent = JSON.parse(evt.data);
-            // appendLog($("<div/>").text(wsEvent.Message))
-            appendLog($("<div/>").text(evt.data))
+            if (wsEvent.Action == "") {
+                appendLog($("<div/>").text(wsEvent.Message))
+            }
+            // appendLog($("<div/>").text(evt.data))
+            if (wsEvent.Action == "registerown") {
+                ownID = wsEvent.Data;
+                appendLog($("<div/>").text("You joined the conversation"))
+                appendLog($("<div/>").text("Your id is: " + ownID))
+
+                var j = JSON.stringify({Action: "registerownOK"});
+                conn.send(j);
+            }
             if (wsEvent.Action == "register") {
                 var id = wsEvent.Data;
-                recipient.append($('<option>', {
-                    value: id,
-                    text: id
-                }));
+                if (id != ownID) {
+                    appendLog($("<div/>").text(id + ": joined the conversation"))
+                    recipient.append($('<option>', {
+                        value: id,
+                        text: id
+                    }));
+                }
             }
         }
     } else {

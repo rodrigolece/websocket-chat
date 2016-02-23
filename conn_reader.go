@@ -34,5 +34,7 @@ func handleWsEvent(c *connection, j wsEvent) {
 			recipientConn.send <- event
 			c.send <- event
 		}
+    case "registerownOK":
+        c.status <- "ok"
 	}
 }

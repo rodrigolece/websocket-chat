@@ -8,6 +8,11 @@
 "Message": "[mensaje]",
 "Data": "[id]"}
 
+{"Action": "registerownOK",
+"Message": null,
+"Data": null}
+
+
 // Instrucciones del servidor
 
 {"Action": null,
@@ -15,5 +20,9 @@
 "Data": null}
 
 {"Action": "register",
+"Message": null,
+"Data": "[id]"}
+
+{"Action": "registerown",
 "Message": null,
 "Data": "[id]"}

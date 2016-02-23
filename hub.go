@@ -20,8 +20,9 @@ type hub struct {
 
 func newHub() *hub {
 	return &hub{
-		// número arbitrario, pero debe servir como colchón
-		broadcast:   make(chan wsEvent, 10),
+		// 10: número arbitrario, pero debe servir como colchón para que
+		// broadcast no se llene y se bloquee
+		broadcast:   make(chan wsEvent),
 		register:    make(chan *connection),
 		unregister:  make(chan *connection),
 		connections: make(map[*connection]bool),
@@ -34,23 +35,7 @@ func (h *hub) run() {
 	for {
 		select {
 		case c := <-h.register:
-			id := randString(5)
-			// Anunciamos al nuevo miembro...
-			newMember := wsEvent{
-				Action: "register",
-				Data: id,
-			}
-			// Para canales buffereados, no podemos asegurar el orden de eventos:
-			// el registro termina y LUEGO se lee broadcast.
-			c.h.broadcast <- newMember
-			// select {
-			// case c.h.broadcast <- newMember:
-			// default:
-			// }
-			//... y luego lo registramos
-			h.connections[c] = true
-			h.id2conn[id] = c
-			h.conn2id[c] = id
+			go register(h, c)
 		case c := <-h.unregister:
 			if _, ok := h.connections[c]; ok {
 				delete(h.connections, c)
