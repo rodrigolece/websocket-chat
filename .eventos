@@ -1,0 +1,19 @@
+// Instrucciones de los clientes
+
+{"Action":"broadcast",
+"Message": "[mensaje]",
+"Data": null}
+
+{"Action":"sendto",
+"Message": "[mensaje]",
+"Data": "[id]"}
+
+// Instrucciones del servidor
+
+{"Action": null,
+"Message": "[mensaje]",
+"Data": null}
+
+{"Action": "register",
+"Message": null,
+"Data": "[id]"}
