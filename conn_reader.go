@@ -35,6 +35,7 @@ func handleWsEvent(c *connection, j wsEvent) {
 			c.send <- event
 		}
     case "registerownOK":
+        // Para sincronizar el registro de un nuevo cliente
         c.status <- "ok"
 	}
 }

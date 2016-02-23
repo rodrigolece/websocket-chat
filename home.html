@@ -67,6 +67,7 @@
             }
             if (wsEvent.Action == "register") {
                 var id = wsEvent.Data;
+                // register se hace en broadcast así que ignoramos nuestra propia id
                 if (id != ownID) {
                     appendLog($("<div/>").text(id + ": joined the conversation"))
                     recipient.append($('<option>', {
