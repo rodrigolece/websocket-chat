@@ -8,6 +8,7 @@
     var conn;
     var msg = $("#msg");
     var log = $("#log");
+    var recipient = $("#recipient");
 
     function appendLog(msg) {
         var d = log[0]
@@ -38,11 +39,16 @@
             appendLog($("<div><b>Connection closed.</b></div>"))
         }
         conn.onmessage = function(evt) {
-            // var message = JSON.parse(evt.data)
-            // // Trabajamos con la suposición de que siempre que llega algo a la
-            // // conexión tiene un mensaje.
-            // appendLog($("<div/>").text(message.Message))
+            var wsEvent = JSON.parse(evt.data);
+            // appendLog($("<div/>").text(wsEvent.Message))
             appendLog($("<div/>").text(evt.data))
+            if (wsEvent.Action == "register") {
+                var id = wsEvent.Data;
+                recipient.append($('<option>', {
+                    value: id,
+                    text: id
+                }));
+            }
         }
     } else {
         appendLog($("<div><b>Your browser does not support WebSockets.</b></div>"))
@@ -90,11 +96,9 @@ body {
 <body>
 <div id="log"></div>
 <form id="form">
-    <!-- <select name="recipients">
-        <option value="all">all</volvo>
-        <option value=""></volvo>
-        <option value=""></volvo>
-    </select> -->
+    <select id="recipient">
+        <option value="all">all</option>
+    </select>
     <input type="text" id="msg" size="64"/>
     <input type="submit" value="Send" />
 </form>
