@@ -23,7 +23,7 @@
 
 {"Action":"broadcast",
 "Data":{"Type":"stopturn",
-        "Content":"[left/right]"}}
+        "Content":null}}
 
 --- Instrucciones del servidor ---
 
