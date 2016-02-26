@@ -22,7 +22,7 @@
     }
 
     addEventListener("keydown", function(evt) {
-        var direction
+        var direction = null;
         // Left arrow
         if (evt.keyCode == 37) {
             direction = "left";
@@ -33,12 +33,23 @@
             direction = "right";
             evt.preventDefault();
         }
-        var data =  {
-            Type: "turn",
-            Content: direction
+
+        if (direction != null) {
+            var data =  {
+                Type: "turn",
+                Content: direction
+            }
+
+            gas.particles[0].turn(direction);
+
+            broadcastEvent(data);
         }
 
-        broadcastEvent(data);
+        // n key --> new gas
+        if (evt.keyCode == 78) {
+            gas = new Gas(numParticles, lx - minD, ly - minD);
+            drawParticles(gas);
+        }
     });
     addEventListener("keyup", function(evt) {
         // Left or right arrow

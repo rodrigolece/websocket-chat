@@ -1,6 +1,9 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
+var turnAngle = Math.PI/30;
+var velFactor = 0.8
+
 var numParticles = 1;
 var radiusParticle = 1/50;
 var minD = 2*radiusParticle;
@@ -18,8 +21,8 @@ function animate(time) {
         Dt = (time - lastTime) * 0.001;
     }
     lastTime = time;
-    ctx.clearRect(0,0,canvas.width,canvas.height)
-    gas.move(Dt)
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    gas.move(Dt);
     drawParticles(gas);
     requestAnimationFrame(animate);
 }
@@ -33,8 +36,8 @@ function Gas(numParticles, lx, ly) {
 
     for (var i = 0; i < numParticles; i++) {
         var pos = newPos(this);
-        var part = new Particle(pos.x, pos.y, Math.random()*2-1,
-        Math.random()*2-1, i);
+        var part = new Particle(pos.x, pos.y, velFactor*(Math.random()*2-1),
+            velFactor*(Math.random()*2-1), i);
 
         this.particles.push(part);
     }
@@ -81,6 +84,7 @@ function Particle(posx, posy, velx, vely, i) {
     this.pos = {x: posx, y: posy};
     this.vel = {vx: velx, vy: vely};
     this.move = moveParticle;
+    this.turn = turnParticle;
     this.index = i;
 }
 
@@ -98,4 +102,20 @@ function moveParticle(Dt) {
         x: this.pos.x + this.vel.vx * Dt,
         y: this.pos.y + this.vel.vy * Dt
     };
+}
+
+function turnParticle(direction) {
+    var angle;
+    if (direction == "left") {
+        angle = -turnAngle; // Cuidado! JS define los ángulos en sentido de las manecillas
+    }
+    if (direction == "right") {
+        angle = turnAngle;
+    }
+    var c = Math.cos(angle);
+    var s = Math.sin(angle);
+    this.vel = {
+        vx: c*this.vel.vx - s*this.vel.vy,
+        vy: s*this.vel.vx + c*this.vel.vy
+    }
 }
