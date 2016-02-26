@@ -2,16 +2,15 @@ var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
 var turnAngle = Math.PI/30;
-var velFactor = 0.8
+var velFactor = 0.7;
 
-var numParticles = 1;
 var radiusParticle = 1/50;
 var minD = 2*radiusParticle;
 var lx = 1;
 var ly = 1;
 
-var gas = new Gas(numParticles, lx - minD, ly - minD);
-drawParticles(gas);
+var gas = new Gas(lx - minD, ly - minD);
+gas.addParticle();
 
 var lastTime = null;
 var Dt = 0;
@@ -28,18 +27,19 @@ function animate(time) {
 }
 requestAnimationFrame(animate);
 
-function Gas(numParticles, lx, ly) {
-    this.numParticles = numParticles;
+function Gas(lx, ly) {
+    this.numParticles = 0;
     this.particles = [];
     this.boxSize = {lx: lx, ly: ly};
     this.move = moveGas;
-
-    for (var i = 0; i < numParticles; i++) {
+    this.addParticle = function() {
+        var index = this.particles.length;
         var pos = newPos(this);
         var part = new Particle(pos.x, pos.y, velFactor*(Math.random()*2-1),
-            velFactor*(Math.random()*2-1), i);
+            velFactor*(Math.random()*2-1), index);
 
         this.particles.push(part);
+        this.numParticles += 1;
     }
 }
 
