@@ -1,4 +1,51 @@
-// Instrucciones de los clientes
+
+--- Instrucciones de los clientes ---
+
+{"Action":"broadcast",
+"Data":{"Type":"message",
+        "Content":"[mensaje]"}}
+
+{"Action":"sendto",
+"Data":[
+        {"Type":"id",
+        "Content":"[id]"},
+
+        {"Type":"message",
+        "Content":"[mensaje]"}]
+}
+
+{"Action": "registerownOK",
+"Data": null}
+
+{"Action":"broadcast",
+"Data":{"Type":"turn",
+        "Content":"[left/right]"}}
+
+{"Action":"broadcast",
+"Data":{"Type":"stopturn",
+        "Content":"[left/right]"}}
+
+--- Instrucciones del servidor ---
+
+{"Action":"read",
+"Data":{"Type":"message",
+        "Content":"[mensaje]"}}
+
+{"Action": "register",
+"Data": {"Type":"id",
+        "Content":"[id]"}}
+
+{"Action": "registerown",
+"Data": {"Type":"id",
+        "Content":"[id]"}}
+
+
+
+
+
+------ Reemplaza viejo protocolo --------
+
+--- Instrucciones de los clientes ----
 
 {"Action":"broadcast",
 "Message": "[mensaje]",
@@ -12,8 +59,7 @@
 "Message": null,
 "Data": null}
 
-
-// Instrucciones del servidor
+--- Instrucciones del servidor ---
 
 {"Action": null,
 "Message": "[mensaje]",
