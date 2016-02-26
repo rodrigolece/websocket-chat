@@ -19,18 +19,43 @@ func (c *connection) reader() {
 func handleWsEvent(c *connection, j wsEvent) {
 	id := c.h.conn2id[c]
 
-    event := wsEvent{
-        Action: "",
-        Message: id + ": "+ j.Message,
+    var event wsEvent
+    Data, ok := j.Data.(data)
+    var DataArray []data
+    if !ok {
+        DataArray, _ = j.Data.([]data)
     }
 
 	switch j.Action {
 	case "broadcast":
-		c.h.broadcast <- event
+        if Data.Type == "message" {
+            event = wsEvent{
+                Action: "read",
+                Data: data{
+                    Type: "message",
+                    Content: id + ": "+ Data.Content.(string),
+                },
+            }
+            c.h.broadcast <- event
+        }
+        if Data.Type == "turn" {
+            // direction := j.Data.Content
+        }
+        if Data.Type == "stopturn" {
+
+        }
 	case "sendto":
-		recipient, ok := j.Data.(string) // La id del destinatario
+        // idMessage, ok := j.Data.([]string)
+		recipient, ok := DataArray[0].Content.(string) // La id del destinatario
 		if !ok { return }
 		if recipientConn, ok := c.h.id2conn[recipient]; ok {
+            event = wsEvent{
+                Action: "read",
+                Data: data{
+                    Type: "message",
+                    Content: id + ": "+ DataArray[1].Content.(string),
+                },
+            }
 			recipientConn.send <- event
 			c.send <- event
 		}

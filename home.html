@@ -1,15 +1,16 @@
+<!DOCTYPE html>
 <html>
+
 <head>
-<title>Chat Example</title>
+<title>Canvas Web Server</title>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script type="text/javascript">
     $(function() {
 
     var conn;
-    var msg = $("#msg");
-    var log = $("#log");
-    var recipient = $("#recipient");
     var ownID;
+    var connected = [];
+    var log = $("#log");
 
     function appendLog(msg) {
         var d = log[0]
@@ -20,30 +21,46 @@
         }
     }
 
-    $("#form").submit(function() {
+    addEventListener("keydown", function(evt) {
+        var direction
+        // Left arrow
+        if (evt.keyCode == 37) {
+            direction = "left";
+            evt.preventDefault();
+        }
+        // Right arrow
+        if (evt.keyCode == 39) {
+            direction = "right";
+            evt.preventDefault();
+        }
+        var data =  {
+            Type: "turn",
+            Content: direction
+        }
+
+        broadcastEvent(data);
+    });
+    addEventListener("keyup", function(evt) {
+        // Left or right arrow
+        if (evt.keyCode == 37 || evt.keyCode == 39) {
+            var data =  { Type: "stopturn" }
+            broadcastEvent(data);
+            evt.preventDefault();
+        }
+    });
+
+    function broadcastEvent(data) {
         if (!conn) {
             return false;
         }
-        if (!msg.val()) {
-            return false;
-        }
-        var id = recipient.val();
-        if (id == "all") {
-            var j = JSON.stringify({
-                Action: "broadcast",
-                Message: msg.val()
-            });
-        } else {
-            var j = JSON.stringify({
-                Action: "sendto",
-                Message: msg.val(),
-                Data: id
-            });
-        }
+        var j = JSON.stringify({
+            Action: "broadcast",
+            Data: data
+        });
         conn.send(j);
-        msg.val("");
         return false
-    });
+    }
+
 
     if (window["WebSocket"]) {
         // Dirección metida a mano abajo
@@ -53,81 +70,47 @@
         }
         conn.onmessage = function(evt) {
             var wsEvent = JSON.parse(evt.data);
-            if (wsEvent.Action == "") {
-                appendLog($("<div/>").text(wsEvent.Message))
+            if (wsEvent.Action == "read") {
+                appendLog($("<div/>").wsEvent.Data.Content)
             }
-            // appendLog($("<div/>").text(evt.data))
             if (wsEvent.Action == "registerown") {
-                ownID = wsEvent.Data;
-                appendLog($("<div/>").text("You joined the conversation"))
-                appendLog($("<div/>").text("Your id is: " + ownID))
-
+                ownID = wsEvent.Data.Content;
                 var j = JSON.stringify({Action: "registerownOK"});
                 conn.send(j);
             }
             if (wsEvent.Action == "register") {
-                var id = wsEvent.Data;
+                var id = wsEvent.Data.Content;
                 // register se hace en broadcast así que ignoramos nuestra propia id
                 if (id != ownID) {
-                    appendLog($("<div/>").text(id + ": joined the conversation"))
-                    recipient.append($('<option>', {
-                        value: id,
-                        text: id
-                    }));
+                    connected.push(id);
                 }
             }
         }
     } else {
         appendLog($("<div><b>Your browser does not support WebSockets.</b></div>"))
     }
+
     });
+
 </script>
-<style type="text/css">
-html {
-    overflow: hidden;
-}
-
-body {
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    background: gray;
-}
-
+<style>
 #log {
-    background: white;
-    margin: 0;
-    padding: 0.5em 0.5em 0.5em 0.5em;
-    position: absolute;
-    top: 0.5em;
-    left: 0.5em;
-    right: 0.5em;
-    bottom: 3em;
-    overflow: auto;
+    float:right;
+    width:300;
+    height:600;
+    padding: 1em;
+    border: 1px solid #d3d3d3;
 }
-
-#form {
-    padding: 0 0.5em 0 0.5em;
-    margin: 0;
-    position: absolute;
-    bottom: 1em;
-    left: 0px;
-    width: 100%;
-    overflow: scroll;
-}
-
 </style>
 </head>
+
 <body>
+<canvas id="canvas" width="600" height="600" style="border:1px solid #d3d3d3;">
+</canvas>
 <div id="log"></div>
-<form id="form">
-    <select id="recipient">
-        <option value="all">all</option>
-    </select>
-    <input type="text" id="msg" size="64"/>
-    <input type="submit" value="Send" />
-</form>
+
+<script src="/static/gas.js"></script>
+
 </body>
+
 </html>
