@@ -10,7 +10,9 @@ var lx = 1;
 var ly = 1;
 
 var gas = new Gas(lx - minD, ly - minD);
-gas.addParticle();
+
+
+// La parte de la animación
 
 var lastTime = null;
 var Dt = 0;
@@ -30,8 +32,12 @@ requestAnimationFrame(animate);
 function Gas(lx, ly) {
     this.numParticles = 0;
     this.particles = [];
-    this.boxSize = {lx: lx, ly: ly};
-    this.move = moveGas;
+    this.boxSize = { lx: lx, ly: ly };
+    this.move = function(Dt) {
+        for (var i = 0; i < this.numParticles; i++){
+            this.particles[i].move(Dt);
+        }
+    }
     this.addParticle = function() {
         var index = this.particles.length;
         var pos = newPos(this);
@@ -40,14 +46,12 @@ function Gas(lx, ly) {
 
         this.particles.push(part);
         this.numParticles += 1;
+
+        return index
     }
 }
 
-function moveGas(Dt) {
-    for (var i = 0; i < this.numParticles; i++){
-        this.particles[i].move(Dt);
-    }
-}
+
 
 function drawParticles(gas) {
     for (var i = 0; i < gas.numParticles; i++) {
@@ -80,12 +84,12 @@ function newPos(gas) {
     return { x: x, y: y };
 }
 
-function Particle(posx, posy, velx, vely, i) {
+function Particle(posx, posy, velx, vely, index) {
+    this.idx = index;
     this.pos = {x: posx, y: posy};
     this.vel = {vx: velx, vy: vely};
     this.move = moveParticle;
-    this.turn = turnParticle;
-    this.index = i;
+    this.changeVel = changeVel;
 }
 
 function moveParticle(Dt) {
@@ -104,18 +108,35 @@ function moveParticle(Dt) {
     };
 }
 
-function turnParticle(direction) {
-    var angle;
+function changeVel(direction) {
+    var angle = null;
+    var factor = null;
+
     if (direction == "left") {
-        angle = -turnAngle; // Cuidado! JS define los ángulos en sentido de las manecillas
+        // Cuidado! JS define los ángulos en sentido de las manecillas del reloj
+        angle = -turnAngle;
     }
     if (direction == "right") {
         angle = turnAngle;
     }
-    var c = Math.cos(angle);
-    var s = Math.sin(angle);
-    this.vel = {
-        vx: c*this.vel.vx - s*this.vel.vy,
-        vy: s*this.vel.vx + c*this.vel.vy
+    if (direction == "up") {
+        factor = 1.02;
+    }
+    if (direction == "down") {
+        factor = 0.98;
+    }
+
+    if (angle != null) {
+        var c = Math.cos(angle);
+        var s = Math.sin(angle);
+        this.vel = {
+            vx: c * this.vel.vx - s * this.vel.vy,
+            vy: s * this.vel.vx + c * this.vel.vy
+        }
+    } else if (factor != null) {
+        this.vel = {
+            vx: this.vel.vx * factor,
+            vy: this.vel.vy * factor
+        }
     }
 }

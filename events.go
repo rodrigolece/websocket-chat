@@ -2,7 +2,7 @@ package main
 
 type wsEvent struct {
     Action string
-    Data interface{}
+    Data []data
 }
 
 type data struct {

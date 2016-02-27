@@ -20,8 +20,6 @@ type hub struct {
 
 func newHub() *hub {
 	return &hub{
-		// 10: número arbitrario, pero debe servir como colchón para que
-		// broadcast no se llene y se bloquee
 		broadcast:   make(chan wsEvent),
 		register:    make(chan *connection),
 		unregister:  make(chan *connection),

@@ -17,6 +17,9 @@ type connection struct {
 
 	// The hub.
 	h *hub
+
+	// El gas
+	g *gas
 }
 
 var upgrader = &websocket.Upgrader{
@@ -26,6 +29,7 @@ var upgrader = &websocket.Upgrader{
 
 type wsHandler struct {
 	h *hub
+	g *gas
 }
 
 func (wsh wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +42,8 @@ func (wsh wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		status: make(chan string),
 		ws: ws,
 		h: wsh.h,
+		// Cada conexión se asigna a un gas
+		g: wsh.g,
 	}
 	c.h.register <- c
 	defer func() { c.h.unregister <- c }()

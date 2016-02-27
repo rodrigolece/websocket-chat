@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "encoding/json"
 )
 
@@ -20,41 +21,55 @@ func handleWsEvent(c *connection, j wsEvent) {
 	id := c.h.conn2id[c]
 
     var event wsEvent
-    Data, ok := j.Data.(data)
-    var DataArray []data
-    if !ok {
-        DataArray, _ = j.Data.([]data)
-    }
+    eventData := make([]data, 0)
+    // Data, ok := j.Data.([]data)
+
+    d := j.Data[0] // el primer elemento; la mayoría de la veces el único
 
 	switch j.Action {
 	case "broadcast":
-        if Data.Type == "message" {
+        if d.Type == "message" {
+            eventData = append(eventData, data{
+                Type: "message",
+                Content: id + ": "+ d.Content.(string),
+            })
             event = wsEvent{
-                Action: "read",
-                Data: data{
-                    Type: "message",
-                    Content: id + ": "+ Data.Content.(string),
-                },
+                Action: "readmessage",
+                Data: eventData,
             }
             c.h.broadcast <- event
         }
-        if Data.Type == "turn" {
-            // direction := j.Data.Content
+        // Si recibimos la posisión de una partícula se la mandamos al gas
+        if d.Type == "pos"{
+            e := j.Data[1] // para pos hay dos elementos en Data
+            pos := d.Content.(map[string]interface{})
+            x := pos.x.(float64)
+            fmt.Println(x)
+            // part := &particle{
+            //     pos: d.Content.(map[string]float64),
+            //     vel: e.Content.(map[string]float64),
+            // }
+            // c.g.register <- part
         }
-        if Data.Type == "stopturn" {
+        if d.Type == "turn" {
+            // direction := d.Content
+        }
+        if d.Type == "stopturn" {
 
         }
 	case "sendto":
-        // idMessage, ok := j.Data.([]string)
-		recipient, ok := DataArray[0].Content.(string) // La id del destinatario
+        e := j.Data[1] // para sendto el segundo elemento es el mensaje
+        // el primero la id
+		recipient, ok := d.Content.(string) // La id del destinatario
 		if !ok { return }
 		if recipientConn, ok := c.h.id2conn[recipient]; ok {
+            eventData = append(eventData, data{
+                Type: "message",
+                Content: id + ": "+ e.Content.(string),
+            })
             event = wsEvent{
-                Action: "read",
-                Data: data{
-                    Type: "message",
-                    Content: id + ": "+ DataArray[1].Content.(string),
-                },
+                Action: "readmessage",
+                Data: eventData,
             }
 			recipientConn.send <- event
 			c.send <- event

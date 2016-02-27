@@ -19,10 +19,15 @@ func homeHandler(c http.ResponseWriter, req *http.Request) {
 func main() {
 	h := newHub()
 	go h.run()
+
+	g := newGas()
+	go g.run()
+
+
 	// Registra una función handler
 	http.HandleFunc("/", homeHandler)
 	// Registra un Handler (interfaz que implementa el método ServeHTTP)
-	http.Handle("/ws", wsHandler{h: h})
+	http.Handle("/ws", wsHandler{h: h , g: g})
 	// El script para dibujar canvas
 	// fs := http.FileServer(http.Dir("./static"))
 	// http.Handle("/static", http.StripPrefix("/static", fs))

@@ -10,7 +10,10 @@
     var conn;
     var ownID;
     var connected = [];
+
     var log = $("#log");
+
+    var self;
 
     function appendLog(msg) {
         var d = log[0]
@@ -33,32 +36,50 @@
             direction = "right";
             evt.preventDefault();
         }
+        // Up arrow
+        if (evt.keyCode == 38) {
+            direction = "up";
+            evt.preventDefault();
+        }
+        // Down arrow
+        if (evt.keyCode == 40) {
+            direction = "down";
+            evt.preventDefault();
+        }
 
         if (direction != null) {
-            var data =  {
-                Type: "turn",
-                Content: direction
-            }
-
-            gas.particles[0].turn(direction);
-
+            var data =  [
+                {
+                    Type: "turn",
+                    Content: direction
+                }
+            ];
             broadcastEvent(data);
+
+            // self guarda el índice de la partícula del cliente
+            gas.particles[self].changeVel(direction);
         }
 
+        /*
+        // d key --> add particle
+        if (evt.keyCode == 68) {
+            gas.addParticle();
+        }
         // n key --> new gas
         if (evt.keyCode == 78) {
-            gas = new Gas(numParticles, lx - minD, ly - minD);
-            drawParticles(gas);
+            gas.addParticle();
         }
+        */
     });
+    /* Tal vez esto no se necesita
     addEventListener("keyup", function(evt) {
         // Left or right arrow
         if (evt.keyCode == 37 || evt.keyCode == 39) {
-            var data =  { Type: "stopturn" }
+            var data =  [{ Type: "stopturn" }];
             broadcastEvent(data);
             evt.preventDefault();
         }
-    });
+    });*/
 
     function broadcastEvent(data) {
         if (!conn) {
@@ -81,16 +102,44 @@
         }
         conn.onmessage = function(evt) {
             var wsEvent = JSON.parse(evt.data);
-            if (wsEvent.Action == "read") {
-                appendLog($("<div/>").wsEvent.Data.Content)
+            if (wsEvent.Action == "readmessage") {
+                appendLog($("<div/>").wsEvent.Data[0].Content)
             }
             if (wsEvent.Action == "registerown") {
-                ownID = wsEvent.Data.Content;
-                var j = JSON.stringify({Action: "registerownOK"});
+                ownID = wsEvent.Data[0].Content;
+                var j = JSON.stringify({
+                    Action: "registerownOK",
+                    // Data es necesario porque en el servidor tomamos el primer
+                    // elemento siempre
+                    Data: [
+                        {
+                            Type: "",
+                            Content: ""
+                        }
+                    ]
+                });
                 conn.send(j);
+
+                // Agregamos una nueva partícula
+                self = gas.addParticle();
+                var pos = gas.particles[self].pos;
+                var vel = gas.particles[self].vel;
+
+                // Mandamos al servidor la posición y velocidad
+                var data =  [
+                    {
+                        Type: "pos",
+                        Content: {x: pos.x, y: pos.y}
+                    },
+                    {
+                        Type: "vel",
+                        Content: {vx: vel.vx, vy: vel.vy}
+                    }
+                ];
+                broadcastEvent(data);
             }
             if (wsEvent.Action == "register") {
-                var id = wsEvent.Data.Content;
+                var id = wsEvent.Data[0].Content;
                 // register se hace en broadcast así que ignoramos nuestra propia id
                 if (id != ownID) {
                     connected.push(id);
