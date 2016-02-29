@@ -2,8 +2,8 @@
 --- Instrucciones de los clientes ---
 
 {"Action":"broadcast",
-"Data":{"Type":"message",
-        "Content":"[mensaje]"}}
+"Data":[{"Type":"message",
+        "Content":"[mensaje]"}]}
 
 {"Action":"sendto",
 "Data":[
@@ -15,29 +15,40 @@
 }
 
 {"Action": "registerownOK",
-"Data": null}
+"Data":[{"Type":"",
+        "Content":""}]}
 
 {"Action":"broadcast",
-"Data":{"Type":"turn",
-        "Content":"[left/right]"}}
+"Data":[{"Type":"changevel",
+        "Content":"[left/right/up/down]"}]}
+
+-- realmente necesario? --
+{"Action":"broadcast",
+"Data":[{"Type":"stopchange",
+        "Content":null}]}
 
 {"Action":"broadcast",
-"Data":{"Type":"stopturn",
-        "Content":null}}
+"Data":[
+        {"Type":"pos",
+        "Content":{x: "[x]", y: "[y]"}},
+
+        {"Type":"vel",
+        "Content":{vx: "[vx]", vy: "[vy]"}}]
+}
 
 --- Instrucciones del servidor ---
 
-{"Action":"read",
-"Data":{"Type":"message",
-        "Content":"[mensaje]"}}
+{"Action":"readmessage",
+"Data":[{"Type":"message",
+        "Content":"[mensaje]"}]}
 
 {"Action": "register",
-"Data": {"Type":"id",
-        "Content":"[id]"}}
+"Data":[{"Type":"id",
+        "Content":"[id]"}]}
 
 {"Action": "registerown",
-"Data": {"Type":"id",
-        "Content":"[id]"}}
+"Data":[{"Type":"id",
+        "Content":"[id]"}]}
 
 
 

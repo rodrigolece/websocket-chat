@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
     "encoding/json"
 )
 
@@ -41,15 +40,20 @@ func handleWsEvent(c *connection, j wsEvent) {
         }
         // Si recibimos la posisión de una partícula se la mandamos al gas
         if d.Type == "pos"{
-            e := j.Data[1] // para pos hay dos elementos en Data
             pos := d.Content.(map[string]interface{})
-            x := pos.x.(float64)
-            fmt.Println(x)
-            // part := &particle{
-            //     pos: d.Content.(map[string]float64),
-            //     vel: e.Content.(map[string]float64),
-            // }
-            // c.g.register <- part
+            e := j.Data[1] // para pos hay dos elementos en Data
+            vel := e.Content.(map[string]interface{})
+            part := &particle{
+                pos: map[string]float64{
+                    "x": pos["x"].(float64),
+                    "y": pos["y"].(float64),
+                },
+                vel: map[string]float64{
+                    "vx": vel["vx"].(float64),
+                    "vy": vel["vy"].(float64),
+                },
+            }
+            c.g.register <- part
         }
         if d.Type == "turn" {
             // direction := d.Content
